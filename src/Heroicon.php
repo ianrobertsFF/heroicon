@@ -137,12 +137,11 @@ class Heroicon extends Field
         $files = scandir($path);
         foreach ($files as $file) {
             if (preg_match("/.*\.svg/i", $file)) {
-                $content = file_get_contents("$path/$file");
-                $content = preg_replace('/<!--(.*?)-->/m', '', $content);
                 $icons[] = [
+                    $name = strtolower(str_replace('.svg', '', $file));
                     'type'    => $key,
-                    'name'    => strtolower(str_replace('.svg', '', $file)),
-                    'content' => $content,
+                    'name'    => $name,
+                    'content' => "<i class='{$key} fa-{$name}'></i>",
                 ];
             }
         }
