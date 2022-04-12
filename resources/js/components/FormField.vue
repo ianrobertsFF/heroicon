@@ -1,34 +1,20 @@
 <template>
   <default-field :field="field" :errors="errors" :show-help-text="showHelpText">
     <template slot="field">
-      <div class="flex flex-row">
-        <div v-if="value" class="icon-preview mb-4">
-          <span class="relative inline-block p-8 border border-gray-300 rounded-md">
-            <span v-html="value"> </span>
-            <span class="close-icon absolute top-0 right-0 cursor-pointer invisible" @click="clear">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </span>
-          </span>
+      <div class="flex flex-row items-center">
+        <div v-if="value" class="icon-preview mr-5">
+          <i :class="value"></i>
         </div>
         <div class="flex justify-center items-center">
-          <button class="btn btn-default btn-primary mb-3 ml-3" @click.prevent="toggleModal">
+          <button v-if="value" class="btn btn-default btn-primary  mr-3" @click="clear">
+            Clear Icon
+          </button>
+          <button class="btn btn-default btn-primary" @click.prevent="toggleModal">
             {{ openModalText }}
           </button>
           <button
             v-if="field.editor"
-            class="btn btn-default btn-primary mb-3 ml-3"
+            class="btn btn-default btn-primary ml-3"
             @click.prevent="toggleEditor"
           >
             {{ editButtonText }}
@@ -88,27 +74,23 @@
                   id="search"
                   class="w-full form-control form-input form-input-bordered"
                   placeholder="Search icons"
-                  v-model="filter.search"
+                  v-model="search"
                   @keypress.enter.prevent
                 />
               </div>
             </div>
           </div>
-          <div class="px-8 py-6 heroicon-inner">
-            <div class="flex flex-wrap items-baseline -mx-2 grid-container">
+          <div class="px-8 py-6 heroicon-inner" @scroll="onScroll">
+            <div class="grid-container">
               <div
-                v-for="icon in filteredIcons"
+                v-for="icon in testIcons"
                 :key="`${icon.type}_${icon.name}`"
                 class="
                   flex flex-col flex-1
                   items-center
                   justify-center
                   text-center
-                  px-2
-                  w-1/6
                   cursor-pointer
-                  mb-4
-                  min-h-90px
                 "
                 @click="saveIcon(icon)"
               >
@@ -137,9 +119,13 @@ export default {
       editorOpened: false,
       value: '',
       filter: {
-        type: '',
-        search: '',
+        type: ''
       },
+      chunk : 0,
+      items : [],
+      expanded: false,
+      debouncedSearch: '',
+      timeout: null,
     };
   },
   methods: {
@@ -160,13 +146,29 @@ export default {
     },
     closeModal() {
       this.modalOpened = false;
+      this.chunk = 0;
+      this.expanded = false;
+      this.items = [];
+      this.getChunk();
     },
     saveIcon(icon) {
-      this.value = icon.content;
-      this.filter.type = '';
-      this.filter.search = '';
+      this.value = `${icon.type} fa-${icon.name}`;
+      this.search = '';
       this.closeModal();
     },
+    onScroll ({ target: { scrollTop, clientHeight, scrollHeight }}) {
+      if ((scrollTop + clientHeight >= (scrollHeight - 250)) && this.expanded === false) {
+        this.expanded = true;
+        this.getChunk();
+      }
+    },
+    getChunk() {
+      let chunkSize = 250;
+      let nextChunk = this.filteredIcons.slice(this.chunk, this.chunk + chunkSize);
+      this.items = [...this.items, ...nextChunk];
+      this.expanded = false;
+      this.chunk += chunkSize;
+    }
   },
   computed: {
     icons() {
@@ -186,10 +188,24 @@ export default {
         filteredIcons = filteredIcons.filter((icon) => icon.type === this.filter.type);
       }
 
-      if (this.filter.search) {
-        filteredIcons = filteredIcons.filter((icon) => icon.name.includes(this.filter.search));
+      if (this.search) {
+        filteredIcons = filteredIcons.filter((icon) => icon.name.includes(this.search));
       }
       return filteredIcons;
+    },
+    search: {
+        get() {
+          return this.debouncedSearch
+        },
+        set(val) {
+          if (this.timeout) clearTimeout(this.timeout)
+          this.timeout = setTimeout(() => {
+            this.debouncedSearch = val
+          }, 300)
+        }
+    },
+    testIcons() {
+      return this.items;
     },
     editButtonText() {
       if (this.editorOpened) {
@@ -205,13 +221,26 @@ export default {
     },
     iconOptions() {
       if (this.field.icons.length > 1) {
-        return [{ value: '', label: 'All' }, ...this.field.icons];
+        return [...this.field.icons];
       }
       return this.field.icons;
     },
     disableOptions() {
       return this.field.icons.length === 1;
     },
+  },
+  watch: {
+    filteredIcons: {
+      // This will let Vue know to look inside the array
+      deep: true,
+
+      // We have to move our method to a handler field
+      handler() {
+        this.chunk = 0;
+        this.items = [];
+        this.getChunk();
+      }
+    }
   },
   created() {
     const escapeHandler = (e) => {
@@ -224,6 +253,7 @@ export default {
       document.removeEventListener('keydown', escapeHandler);
     });
     this.filter.type = this.iconOptions[0].value;
+    this.getChunk();
   },
 };
 </script>
@@ -231,6 +261,14 @@ export default {
 .icon-preview svg {
   width: 60px;
   height: 60px;
+}
+
+.icon-preview {
+  font-size:3em;
+  margin-right:1.6rem;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
 }
 
 .icon-container > svg {
@@ -299,7 +337,29 @@ export default {
   color: #3c4b5f;
 }
 
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-gap: 1rem;
+}
+
+
 .grid-container > div {
-  flex-basis: 10%;
+  height:6rem;
+}
+
+.grid-container > div > .icon-container  {
+  font-size:2rem;
+}
+
+@media (max-width: 992px) {
+  div.modal.heroicon-modal {
+    top:0;
+  }
+}
+@media (max-width: 640px) {
+  .heroicon-modal > div:first-child > div {
+    width:80%;
+  }
 }
 </style>
