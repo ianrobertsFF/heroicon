@@ -6,12 +6,13 @@
           <i :class="value"></i>
         </div>
         <div class="flex justify-center items-center">
-          <button v-if="value" class="btn btn-default btn-primary  mr-3" @click="clear">
+          <div v-if="value" class="btn cursor-pointer btn-default btn-primary  mr-3" @click.prevent="clear">
             Clear Icon
-          </button>
-          <button class="btn btn-default btn-primary" @click.prevent="toggleModal">
+          </div>
+          <div class="btn cursor-pointer btn-default btn-primary" @click.prevent="toggleModal">
             {{ openModalText }}
-          </button>
+          </div>
+
           <button
             v-if="field.editor"
             class="btn btn-default btn-primary ml-3"
