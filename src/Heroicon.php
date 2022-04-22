@@ -9,33 +9,11 @@ class Heroicon extends Field
     public $component = 'heroicon';
     public array $icons = [];
 
-    protected static array $supportedSets = [
-        ['value' => 'solid', 'label' => 'Heroicons solid', 'path' => __DIR__ . '/../resources/icons/heroicons/solid'],
-        [
-            'value' => 'outline',
-            'label' => 'Heroicons outline',
-            'path'  => __DIR__ . '/../resources/icons/heroicons/outline'
-        ],
-        [
-            'value' => 'fa-brands',
-            'label' => 'Font Awesome brands',
-            'path'  => __DIR__ . '/../resources/icons/fa/free/brands'
-        ],
-        [
-            'value' => 'fa-regular',
-            'label' => 'Font Awesome regular',
-            'path'  => __DIR__ . '/../resources/icons/fa/free/regular'
-        ],
-        [
-            'value' => 'fa-solid',
-            'label' => 'Font Awesome solid',
-            'path'  => __DIR__ . '/../resources/icons/fa/free/solid'
-        ],
-    ];
+    protected static array $supportedSets = [];
 
     protected static array $defaultIcons = [];
 
-    protected static array $defaultIconSets = ['solid', 'outline', 'fa-brands', 'fa-regular', 'fa-solid'];
+    protected static array $defaultIconSets = [];
     protected static bool $defaultEditorEnabled = true;
 
     public function __construct($name, $attribute = null, callable $resolveCallback = null)
@@ -111,13 +89,19 @@ class Heroicon extends Field
         ]);
     }
 
-    public static function registerGlobalIconSet(string $key, string $label, string $path): void
+    public static function registerGlobalIconSet(string $key, string $label, string $path, bool|string $subType=false): void
     {
-        self::$defaultIcons[] = [
+        $iconSet = [
             'value' => $key,
             'label' => $label,
-            'icons' => self::prepareIcons($key, $path)
         ];
+        if (!$subType) {
+            $iconSet['icons'] = self::prepareIcons($key, $path);
+        }
+        else {
+            $iconSet['subType'] = $subType;
+        }
+        self::$defaultIcons[] = $iconSet;
     }
 
     public static function defaultIconSets(array $sets): void
@@ -134,14 +118,26 @@ class Heroicon extends Field
     protected static function prepareIcons($key, $path): array
     {
         $icons = [];
+        $iconFileContents = file_get_contents($path);
+        $iconArray = json_decode($iconFileContents);
+        foreach($iconArray as $icon) {
+            $icon->type ??= $key;
+        }
+        return $iconArray;
+    }
+
+    protected static function prepareIconsa($key, $path): array
+    {
+        $icons = [];
         $files = scandir($path);
         foreach ($files as $file) {
             if (preg_match("/.*\.svg/i", $file)) {
-                $name = strtolower(str_replace('.svg', '', $file));
+                $content = file_get_contents("$path/$file");
+                $content = preg_replace('/<!--(.*?)-->/m', '', $content);
                 $icons[] = [
                     'type'    => $key,
-                    'name'    => $name,
-                    'content' => "<i class='{$key} fa-{$name}'></i>",
+                    'name'    => strtolower(str_replace('.svg', '', $file)),
+                    'content' => $content,
                 ];
             }
         }

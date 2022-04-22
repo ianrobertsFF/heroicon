@@ -85,7 +85,7 @@
             <div class="grid-container">
               <div
                 v-for="icon in testIcons"
-                :key="`${icon.type}_${icon.name}`"
+                :key="`${icon.type}_${icon.value}`"
                 class="
                   flex flex-col flex-1
                   items-center
@@ -95,8 +95,8 @@
                 "
                 @click="saveIcon(icon)"
               >
-                <div v-html="icon.content" class="w-12 h-12 icon-container"></div>
-                <div>{{ icon.name }}</div>
+                <div class="w-12 h-12 icon-container"><i :class="`${filter.type} ${icon.value}`"></i></div>
+                <div>{{ icon.label }}</div>
               </div>
             </div>
           </div>
@@ -120,13 +120,15 @@ export default {
       editorOpened: false,
       value: '',
       filter: {
-        type: ''
+        type: '',
+        previousType:'',
+        checkedType:''
       },
       chunk : 0,
       items : [],
       expanded: false,
       debouncedSearch: '',
-      timeout: null,
+      timeout: null
     };
   },
   methods: {
@@ -153,7 +155,7 @@ export default {
       this.getChunk();
     },
     saveIcon(icon) {
-      this.value = `${icon.type} fa-${icon.name}`;
+      this.value = `${icon.type} ${icon.value}`;
       this.search = '';
       this.closeModal();
     },
@@ -169,6 +171,15 @@ export default {
       this.items = [...this.items, ...nextChunk];
       this.expanded = false;
       this.chunk += chunkSize;
+    },
+    findIcon(testArray, search) {
+      search = search.toLowerCase();
+    	return testArray.filter(icon => {
+      	let labelTest = icon.label.toLowerCase().includes(search);
+        let valueTest = icon.value.toLowerCase().includes(search);
+    		let searchTest = icon.search ? icon.search.some(searchArray => searchArray.includes(search)) : false;
+      	return (searchTest || labelTest || valueTest);
+    	});
     }
   },
   computed: {
@@ -181,16 +192,30 @@ export default {
           allIcons = [...allIcons, ...iconSet.icons];
         }
       });
-      return allIcons.filter((icon) => enabledTypes.includes(icon.type));
+      return allIcons;
+    },
+    filterPreCheck() {
+      let iconSet = this.field.icons.find(set=> set.value === this.filter.type);
+      if (typeof iconSet.icons === 'undefined' && typeof iconSet.subType !== "undefined")  {
+        if (iconSet.subType !== this.filter.previousType) {
+          this.filter.checkedType = iconSet.subType;
+          this.filter.previousType = iconSet.subType;
+        }
+      }
+      else {
+        this.filter.checkedType = this.filter.type;
+        this.filter.previousType = this.filter.type;
+      }
+      return this.filteredIcons;
     },
     filteredIcons() {
       let filteredIcons = this.icons;
-      if (this.filter.type) {
-        filteredIcons = filteredIcons.filter((icon) => icon.type === this.filter.type);
+      if (this.filter.checkedType) {
+        filteredIcons = filteredIcons.filter((icon) => icon.type === this.filter.checkedType);
       }
 
       if (this.search) {
-        filteredIcons = filteredIcons.filter((icon) => icon.name.includes(this.search));
+        filteredIcons = this.findIcon(filteredIcons, this.search);
       }
       return filteredIcons;
     },
@@ -241,6 +266,9 @@ export default {
         this.items = [];
         this.getChunk();
       }
+    },
+    "filter.type"(newValue) {
+      this.filterPreCheck;
     }
   },
   created() {
@@ -298,29 +326,22 @@ export default {
 }
 
 .heroicon-modal > div:first-child {
-  flex-basis: 0;
   height: 100%;
-  flex-direction: column;
+  align-items:center;
 }
 
 .heroicon-modal > div:first-child > div {
   position: relative;
   max-height: 80%;
-  overflow: hidden;
   width: 60%;
-  margin: 0 auto;
-  display: flex;
-  flex-grow: 1;
+  height:100%;
 }
 
 .heroicon-modal > div:first-child > div > div {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow:hidden;
 }
 
 .heroicon-inner {
