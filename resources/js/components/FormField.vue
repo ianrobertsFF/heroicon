@@ -155,7 +155,7 @@ export default {
       this.getChunk();
     },
     saveIcon(icon) {
-      this.value = `${icon.type} ${icon.value}`;
+      this.value = `${this.filter.type} ${icon.value}`;
       this.search = '';
       this.closeModal();
     },
