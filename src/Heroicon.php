@@ -6,7 +6,7 @@ use Laravel\Nova\Fields\Field;
 
 class Heroicon extends Field
 {
-    public $component = 'heroicon';
+    public $component = 'fontawesome';
     public array $icons = [];
 
     protected static array $supportedSets = [];

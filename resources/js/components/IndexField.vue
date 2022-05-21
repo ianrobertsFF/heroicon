@@ -1,5 +1,5 @@
 <template>
-  <span class="heroicon-list" v-html="field.value"></span>
+  <i class="ffc-text-3xl" :class="field.value"></i>
 </template>
 
 <script>

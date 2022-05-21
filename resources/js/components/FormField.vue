@@ -1,25 +1,43 @@
 <template>
-  <default-field :field="field" :errors="errors" :show-help-text="showHelpText">
-    <template slot="field">
-      <div class="flex flex-row items-center">
-        <div v-if="value" class="icon-preview mr-5">
+  <DefaultField :field="currentField" :errors="errors" :show-help-text="showHelpText">
+    <template #field>
+      <div class="flex flex-row items-center justify-center flex-wrap ffc-gap-3">
+        <div v-if="value" class="icon-preview">
           <i :class="value"></i>
         </div>
-        <div class="flex justify-center items-center">
-          <div v-if="value" class="btn cursor-pointer btn-default btn-primary  mr-3" @click.prevent="clear">
-            Clear Icon
-          </div>
-          <div class="btn cursor-pointer btn-default btn-primary" @click.prevent="toggleModal">
-            {{ openModalText }}
-          </div>
-
-          <button
-            v-if="field.editor"
-            class="btn btn-default btn-primary ml-3"
-            @click.prevent="toggleEditor"
+        <div
+          class="
+            flex
+            ffc-flex-col ffc-flex-grow
+            sm:ffc-flex-row
+            justify-center
+            items-center
+            ffc-gap-2 ffc-justify-start ffc-items-start
+          "
+        >
+          <DefaultButton
+            @click.prevent="toggleModal"
+            class="
+              ffc-flex-grow
+              sm:ffc-grow-0
+              w-full
+              ffc-max-w-[250px]
+              sm:ffc-max-w-fit
+              ffc-toggle-button
+            "
           >
+            {{ openModalText }}
+          </DefaultButton>
+          <DefaultButton
+            v-if="value"
+            @click.prevent="clear"
+            class="mr-2 ffc-flex-grow sm:ffc-grow-0 w-full ffc-max-w-[250px] sm:ffc-max-w-fit"
+          >
+            Clear Icon
+          </DefaultButton>
+          <DefaultButton v-if="field.editor" @click.prevent="toggleEditor">
             {{ editButtonText }}
-          </button>
+          </DefaultButton>
         </div>
       </div>
       <transition name="fade">
@@ -34,42 +52,32 @@
         />
       </transition>
 
-      <modal v-if="modalOpened" @close="closeModal" class="heroicon-modal">
-        <div class="bg-white rounded-lg shadow-lg">
+      <Modal :show="modalOpened" class="h-full fontawesome-modal" maxWidth="2xl">
+        <div class="bg-white rounded-lg shadow-lg h-full fontawesome-modal-inner">
           <div class="px-8 py-6 border-b relative" style="border-color: #e0e0e0">
             <heading :level="2" class="mb-0 px-10">{{ __('Select Icon') }}</heading>
             <a href="#" class="heroicon-close" @click.prevent="closeModal">
-              <svg
-                class="w-10 h-10"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <i class="far fa-times"></i>
             </a>
           </div>
-          <div class="px-8 py-4 border-b">
-            <div class="flex flex-wrap -mx-4">
-              <div class="w-1/3 px-4">
-                <select
-                  id="type"
-                  class="w-full form-control form-select"
-                  v-model="filter.type"
-                  :disabled="disableOptions"
-                >
-                  <option v-for="opt in iconOptions" :value="opt.value" :key="opt.value">
-                    {{ opt.label }}
-                  </option>
-                </select>
+          <div class="ffc-px-4 ffc-py-2 md:ffc-px-8 md:ffc-py-4 border-b">
+            <div class="flex flex-wrap ffc-gap-2 -mx-4">
+              <div class="grow">
+                <div class="relative w-full">
+                  <select
+                    id="type"
+                    class="w-full form-control form-select form-select-bordered"
+                    v-model="filter.type"
+                    :disabled="disableOptions"
+                  >
+                    <option v-for="opt in iconOptions" :value="opt.value" :key="opt.value">
+                      {{ opt.label }}
+                    </option>
+                  </select>
+                  <IconArrow class="pointer-events-none form-select-arrow" />
+                </div>
               </div>
-              <div class="w-2/3 px-4">
+              <div class="grow">
                 <input
                   type="text"
                   id="search"
@@ -81,37 +89,37 @@
               </div>
             </div>
           </div>
-          <div class="px-8 py-6 heroicon-inner" @scroll="onScroll">
+          <div class="ffc-px-4 ffc-py-2 md:ffc-px-8 md:ffc-py-4 heroicon-inner" @scroll="onScroll">
             <div class="grid-container">
               <div
                 v-for="icon in testIcons"
                 :key="`${icon.type}_${icon.value}`"
-                class="
-                  flex flex-col flex-1
-                  items-center
-                  justify-center
-                  text-center
-                  cursor-pointer
-                "
+                class="flex flex-col flex-1 items-center justify-center text-center cursor-pointer"
                 @click="saveIcon(icon)"
               >
-                <div class="w-12 h-12 icon-container"><i :class="`${filter.type} ${icon.value}`"></i></div>
+                <div class="w-12 h-12 icon-container">
+                  <i :class="`${filter.type} ${icon.value}`"></i>
+                </div>
                 <div>{{ icon.label }}</div>
               </div>
             </div>
           </div>
         </div>
-      </modal>
+      </Modal>
     </template>
-  </default-field>
+  </DefaultField>
 </template>
 
 <script>
-import { FormField, HandlesValidationErrors } from 'laravel-nova';
+import { DependentFormField, HandlesValidationErrors } from 'laravel-nova';
 
 export default {
-  mixins: [FormField, HandlesValidationErrors],
-
+  name: 'Heroicon',
+  mixins: [DependentFormField, HandlesValidationErrors],
+  mounted() {
+    console.log('FieldMounted');
+    console.log(this);
+  },
   props: ['resourceName', 'resourceId', 'field'],
   data() {
     return {
@@ -121,14 +129,14 @@ export default {
       value: '',
       filter: {
         type: '',
-        previousType:'',
-        checkedType:''
+        previousType: '',
+        checkedType: '',
       },
-      chunk : 0,
-      items : [],
+      chunk: 0,
+      items: [],
       expanded: false,
       debouncedSearch: '',
-      timeout: null
+      timeout: null,
     };
   },
   methods: {
@@ -142,6 +150,7 @@ export default {
       this.value = '';
     },
     toggleModal() {
+      console.log('modalClick');
       this.modalOpened = !this.modalOpened;
     },
     toggleEditor() {
@@ -159,8 +168,8 @@ export default {
       this.search = '';
       this.closeModal();
     },
-    onScroll ({ target: { scrollTop, clientHeight, scrollHeight }}) {
-      if ((scrollTop + clientHeight >= (scrollHeight - 250)) && this.expanded === false) {
+    onScroll({ target: { scrollTop, clientHeight, scrollHeight } }) {
+      if (scrollTop + clientHeight >= scrollHeight - 250 && this.expanded === false) {
         this.expanded = true;
         this.getChunk();
       }
@@ -174,13 +183,15 @@ export default {
     },
     findIcon(testArray, search) {
       search = search.toLowerCase();
-    	return testArray.filter(icon => {
-      	let labelTest = icon.label.toLowerCase().includes(search);
+      return testArray.filter((icon) => {
+        let labelTest = icon.label.toLowerCase().includes(search);
         let valueTest = icon.value.toLowerCase().includes(search);
-    		let searchTest = icon.search ? icon.search.some(searchArray => searchArray.includes(search)) : false;
-      	return (searchTest || labelTest || valueTest);
-    	});
-    }
+        let searchTest = icon.search
+          ? icon.search.some((searchArray) => searchArray.includes(search))
+          : false;
+        return searchTest || labelTest || valueTest;
+      });
+    },
   },
   computed: {
     icons() {
@@ -195,14 +206,13 @@ export default {
       return allIcons;
     },
     filterPreCheck() {
-      let iconSet = this.field.icons.find(set=> set.value === this.filter.type);
-      if (typeof iconSet.icons === 'undefined' && typeof iconSet.subType !== "undefined")  {
+      let iconSet = this.field.icons.find((set) => set.value === this.filter.type);
+      if (typeof iconSet.icons === 'undefined' && typeof iconSet.subType !== 'undefined') {
         if (iconSet.subType !== this.filter.previousType) {
           this.filter.checkedType = iconSet.subType;
           this.filter.previousType = iconSet.subType;
         }
-      }
-      else {
+      } else {
         this.filter.checkedType = this.filter.type;
         this.filter.previousType = this.filter.type;
       }
@@ -220,15 +230,15 @@ export default {
       return filteredIcons;
     },
     search: {
-        get() {
-          return this.debouncedSearch
-        },
-        set(val) {
-          if (this.timeout) clearTimeout(this.timeout)
-          this.timeout = setTimeout(() => {
-            this.debouncedSearch = val
-          }, 300)
-        }
+      get() {
+        return this.debouncedSearch;
+      },
+      set(val) {
+        if (this.timeout) clearTimeout(this.timeout);
+        this.timeout = setTimeout(() => {
+          this.debouncedSearch = val;
+        }, 300);
+      },
     },
     testIcons() {
       return this.items;
@@ -265,39 +275,67 @@ export default {
         this.chunk = 0;
         this.items = [];
         this.getChunk();
-      }
+      },
     },
-    "filter.type"(newValue) {
+    'filter.type'(newValue) {
       this.filterPreCheck;
-    }
+    },
   },
   created() {
+    console.log('FieldCreated');
     const escapeHandler = (e) => {
       if (e.key === 'Escape' && this.modalOpened) {
         this.closeModal();
       }
     };
     document.addEventListener('keydown', escapeHandler);
-    this.$once('hook:destroyed', () => {
-      document.removeEventListener('keydown', escapeHandler);
-    });
     this.filter.type = this.iconOptions[0].value;
     this.getChunk();
+  },
+
+  beforeDestroy() {
+    document.removeEventListener('keydown', escapeHandler);
   },
 };
 </script>
 <style>
+/*** 
+
+  New CSS
+
+***/
+@media (max-width: 768px) {
+  .ffc-toggle-button:only-child {
+    max-width: unset;
+  }
+}
+.fontawesome-modal {
+  padding-top: 12vh;
+  padding-bottom: 12vh;
+}
+
+.fontawesome-modal-inner {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/*** 
+
+Old CSS
+
+***/
+
 .icon-preview svg {
   width: 60px;
   height: 60px;
 }
 
 .icon-preview {
-  font-size:3em;
-  margin-right:1.6rem;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
+  font-size: 3.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .icon-container > svg {
@@ -327,21 +365,21 @@ export default {
 
 .heroicon-modal > div:first-child {
   height: 100%;
-  align-items:center;
+  align-items: center;
 }
 
 .heroicon-modal > div:first-child > div {
   position: relative;
   max-height: 80%;
   width: 60%;
-  height:100%;
+  height: 100%;
 }
 
 .heroicon-modal > div:first-child > div > div {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow:hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .heroicon-inner {
@@ -352,36 +390,37 @@ export default {
 
 .heroicon-close {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  right: 1.5rem;
-  font-size: 1.5rem;
+  top: 0.7rem;
+  right: 0.7rem;
+  font-size: 1.3rem;
+  padding: 5px 8px;
   color: #3c4b5f;
 }
 
 .grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    grid-gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  grid-gap: 1rem;
 }
-
 
 .grid-container > div {
-  height:6rem;
+  height: 6rem;
 }
 
-.grid-container > div > .icon-container  {
-  font-size:2rem;
+.grid-container > div > .icon-container {
+  font-size: 2rem;
 }
 
 @media (max-width: 992px) {
   div.modal.heroicon-modal {
-    top:0;
+    top: 0;
   }
 }
 @media (max-width: 640px) {
   .heroicon-modal > div:first-child > div {
-    width:80%;
+    width: 80%;
   }
 }
+
+/** */
 </style>

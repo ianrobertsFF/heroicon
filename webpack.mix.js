@@ -1,3 +1,13 @@
-const mix = require('laravel-mix');
+let mix = require('laravel-mix');
+let tailwindcss = require('tailwindcss')
+let path = require('path')
+let postcssImport = require('postcss-import')
 
-mix.setPublicPath('dist').js('resources/js/field.js', 'js');
+require('./nova.mix')
+
+mix
+  .setPublicPath('dist')
+  .js('resources/js/field.js', 'js')
+  .vue({ version: 3 })
+  .postCss('./resources/css/field.css', 'dist/css/', [postcssImport(), tailwindcss('tailwind.config.js'),])
+  .nova('formfeed/fontawesome')
