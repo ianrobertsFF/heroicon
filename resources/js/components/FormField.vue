@@ -15,7 +15,7 @@
             ffc-gap-2 ffc-justify-start ffc-items-start
           "
         >
-          <DefaultButton
+          <div
             @click.prevent="toggleModal"
             class="
               ffc-flex-grow
@@ -24,20 +24,86 @@
               ffc-max-w-[250px]
               sm:ffc-max-w-fit
               ffc-toggle-button
+              shadow
+              relative
+              bg-primary-500
+              hover:bg-primary-400
+              text-white
+              dark:text-gray-900
+              cursor-pointer
+              rounded
+              text-sm
+              font-bold
+              focus:outline-none focus:ring
+              ring-primary-200
+              dark:ring-gray-600
+              h-9
+              px-3
+              inline-flex
+              items-center
+              justify-center
             "
           >
             {{ openModalText }}
-          </DefaultButton>
-          <DefaultButton
+          </div>
+          <div
             v-if="value"
             @click.prevent="clear"
-            class="mr-2 ffc-flex-grow sm:ffc-grow-0 w-full ffc-max-w-[250px] sm:ffc-max-w-fit"
+            class="
+              mr-2
+              ffc-flex-grow
+              sm:ffc-grow-0
+              w-full
+              ffc-max-w-[250px]
+              sm:ffc-max-w-fit
+              shadow
+              relative
+              bg-primary-500
+              hover:bg-primary-400
+              text-white
+              dark:text-gray-900
+              cursor-pointer
+              rounded
+              text-sm
+              font-bold
+              focus:outline-none focus:ring
+              ring-primary-200
+              dark:ring-gray-600
+              h-9
+              px-3
+              inline-flex
+              items-center
+              justify-center
+            "
           >
             Clear Icon
-          </DefaultButton>
-          <DefaultButton v-if="field.editor" @click.prevent="toggleEditor">
+          </div>
+          <div
+            v-if="field.editor"
+            @click.prevent="toggleEditor"
+            class="
+              shadow
+              relative
+              bg-primary-500
+              hover:bg-primary-400
+              text-white
+              dark:text-gray-900
+              cursor-pointer
+              rounded
+              text-sm
+              font-bold
+              focus:outline-none focus:ring
+              ring-primary-200
+              dark:ring-gray-600
+              h-9
+              px-3
+              inline-flex
+              items-center
+              justify-center
+            "
+          >
             {{ editButtonText }}
-          </DefaultButton>
+          </div>
         </div>
       </div>
       <transition name="fade">
