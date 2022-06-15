@@ -3,6 +3,7 @@
 namespace AlexAzartsev\Heroicon;
 
 use Laravel\Nova\Fields\Field;
+use Laravel\Nova\Http\Requests\NovaRequest;
 
 class Heroicon extends Field
 {
@@ -169,5 +170,14 @@ class Heroicon extends Field
         return $this->withMeta([
             'icons' => $filteredIcons
         ]);
+    }
+
+    public function jsonSerialize(): array {
+        $returnArray = parent::jsonSerialize();
+        $request = app(NovaRequest::class);
+        if(!$request->isCreateOrAttachRequest() && !$request->isUpdateOrUpdateAttachedRequest()) {
+            $returnArray['icons'] = null;
+        }
+        return $returnArray;
     }
 }
